@@ -4,12 +4,12 @@ const PORT = 9010;
 const HOST = '157.230.211.213';
 
 const server = net.createServer(socket => {
-    console.log(`📡 Cliente conectado desde: ${socket.remoteAddress}`);
+    console.log(`Cliente conectado desde: ${socket.remoteAddress}`);
 
     socket.on('data', data => {
         let hexData = data.toString('hex');
 
-        console.log(`📩 Datos recibidos: ${hexData}`);
+        console.log(`Datos recibidos: ${hexData}`);
 
         // Extraer los parámetros del protocolo
         let messageID = hexData.substring(2, 6);
@@ -26,30 +26,30 @@ const server = net.createServer(socket => {
         let alarmStatus = parseAlarmStatus(hexData.substring(90, 94));
 
         // Mostrar resultados en consola
-        console.log(`📍 Dispositivo: ${deviceID}`);
-        console.log(`📆 Fecha UTC: ${date}`);
-        console.log(`🕒 Hora UTC: ${time}`);
-        console.log(`🌍 Latitud: ${latitude}, Longitud: ${longitude}`);
-        console.log(`🚀 Velocidad: ${speed} km/h`);
-        console.log(`🧭 Dirección: ${direction}°`);
-        console.log(`🔋 Batería: ${batteryLevel}%`);
-        console.log(`⚠️ Estado del Dispositivo:`, deviceStatus);
-        console.log(`🚨 Alarmas Activas:`, alarmStatus);
+        console.log(`Dispositivo: ${deviceID}`);
+        console.log(`Fecha UTC: ${date}`);
+        console.log(`Hora UTC: ${time}`);
+        console.log(`Latitud: ${latitude}, Longitud: ${longitude}`);
+        console.log(`Velocidad: ${speed} km/h`);
+        console.log(`Dirección: ${direction}°`);
+        console.log(`Batería: ${batteryLevel}%`);
+        console.log(`Estado del Dispositivo:`, deviceStatus);
+        console.log(`Alarmas Activas:`, alarmStatus);
 
         // Si el mensaje requiere respuesta, enviar confirmación
         if (messageID === '5501' || messageID === '5502') {
             let response = buildResponse(deviceID, msgSerialNumber, messageID);
             socket.write(response);
-            console.log(`📡 Respuesta enviada: ${response.toString('hex')}`);
+            console.log(`Respuesta enviada: ${response.toString('hex')}`);
         }
     });
 
-    socket.on('close', () => console.log('❌ Cliente desconectado.'));
-    socket.on('error', err => console.error(`🚨 Error en socket: ${err.message}`));
+    socket.on('close', () => console.log('Cliente desconectado.'));
+    socket.on('error', err => console.error(`Error en socket: ${err.message}`));
 });
 
 server.listen(PORT, HOST, () => {
-    console.log(`✅ Servidor escuchando en ${HOST}:${PORT}`);
+    console.log(`Servidor escuchando en ${HOST}:${PORT}`);
 });
 
 // Convierte latitud de formato BCD a decimal
