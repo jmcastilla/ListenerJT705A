@@ -19,6 +19,7 @@ const server = net.createServer(socket => {
             if (end !== -1) {
                 let hexData = buffer.substring(start, end + 2); // Extraer trama completa
                 buffer = buffer.substring(end + 2); // Eliminar del buffer la trama procesada
+                console.log(`Datos recibidos: ${hexData}`);
                 if (hexData.length < 30) {
                     console.error("Trama incompleta, descartada:", hexData);
                     break;
@@ -49,7 +50,6 @@ server.listen(PORT, HOST, () => {
 
 function processGPSMessage(hexData, socket) {
     hexData = restoreEscapeCharacters(hexData);
-    console.log(`Datos recibidos: ${hexData}`);
 
     // Extraer los parámetros del protocolo
     let messageID = hexData.substring(2, 6);
