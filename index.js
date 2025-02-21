@@ -36,6 +36,7 @@ server.listen(PORT, HOST, () => {
 });
 
 function processGPSMessage(hexData, socket) {
+    hexData = restoreEscapeCharacters(hexData);
     console.log(`Datos recibidos: ${hexData}`);
 
     // Extraer los parámetros del protocolo
@@ -133,12 +134,22 @@ function parseAlarmStatus(hexString) {
     return Buffer.from(response + xor + '7E', 'hex');
 }*/
 
-function buildResponse(deviceID, msgSerialNumber, messageID) {
-    let messageLength = '0005'; // Longitud del mensaje en 2 bytes (HEX)
 
-    let responseBody = `4401${messageLength}${deviceID}${msgSerialNumber}${messageID}`;
+function buildResponse(deviceID, msgSerialNumber, messageID) {
+    let messageIDResponse = '4401';  // Código de respuesta
+    let messageLength = '0005';      // Longitud fija de 5 bytes
+
+    // Construcción del mensaje SIN `0x7E` al inicio y fin
+    let responseBody = `${messageIDResponse}${messageLength}${deviceID}${msgSerialNumber}${messageID}`;
+
+    // 📌 Calcular el XOR antes del escape
     let xor = calculateXOR(responseBody);
-    let response = `7E${responseBody}${xor}7E`;
+
+    // 📌 Aplicar escape a `0x7E` y `0x7D`
+    let escapedBody = applyEscapeCharacters(`${responseBody}${xor}`);
+
+    // 📌 Mensaje final con `0x7E` delimitador
+    let response = `7E${escapedBody}7E`;
 
     return Buffer.from(response, 'hex');
 }
@@ -161,5 +172,13 @@ function calculateXOR(hexString) {
         xor ^= bytes[i]; // Aplicar XOR a cada byte
     }
 
-    return xor.toString(16).padStart(2, '0').toUpperCase(); // Devolver en HEX
+    return xor.toString(16).padStart(2, '0').toUpperCase();
+}
+
+function applyEscapeCharacters(hexString) {
+    return hexString.replace(/7E/g, '7D02').replace(/7D/g, '7D01');
+}
+
+function restoreEscapeCharacters(hexString) {
+    return hexString.replace(/7D02/g, '7E').replace(/7D01/g, '7D');
 }
