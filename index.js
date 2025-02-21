@@ -4,7 +4,7 @@ const PORT = 10000;
 const HOST = '104.236.112.160';
 
 const server = net.createServer(socket => {
-    console.log(`📡 Cliente conectado desde: ${socket.remoteAddress}`);
+    console.log(`Cliente conectado desde: ${socket.remoteAddress}`);
 
     let buffer = ""; // Buffer para almacenar datos incompletos
 
@@ -27,8 +27,8 @@ const server = net.createServer(socket => {
         }
     });
 
-    socket.on('close', () => console.log('❌ Cliente desconectado.'));
-    socket.on('error', err => console.error(`🚨 Error en socket: ${err.message}`));
+    socket.on('close', () => console.log('Cliente desconectado.'));
+    socket.on('error', err => console.error(`Error en socket: ${err.message}`));
 });
 
 server.listen(PORT, HOST, () => {
@@ -52,17 +52,20 @@ function processGPSMessage(hexData, socket) {
     let batteryLevel = parseInt(hexData.substring(70, 72), 16);
     let deviceStatus = parseDeviceStatus(hexData.substring(86, 90));
     let alarmStatus = parseAlarmStatus(hexData.substring(90, 94));
+    let additionalDataHex = hexData.substring(94, hexData.length - 4); // Restar el checksum y 7E final
+    let additionalInfo = parseAdditionalInfo(additionalDataHex);
 
     // Mostrar resultados en consola
     console.log(`Dispositivo: ${deviceID}`);
     console.log(`Fecha UTC: ${date}`);
     console.log(`Hora UTC: ${time}`);
-    /*console.log(`Latitud: ${latitude}, Longitud: ${longitude}`);
+    console.log(`Latitud: ${latitude}, Longitud: ${longitude}`);
     console.log(`Velocidad: ${speed} km/h`);
     console.log(`Dirección: ${direction}°`);
     console.log(`Batería: ${batteryLevel}%`);
     console.log(`Estado del Dispositivo:`, deviceStatus);
-    console.log(`Alarmas Activas:`, alarmStatus);*/
+    console.log(`Alarmas Activas:`, alarmStatus);
+    console.log(`Información Adicional:`, additionalInfo);
 
     // Si el mensaje requiere respuesta, enviar confirmación
     if (messageID === '5501' || messageID === '5502') {
@@ -71,6 +74,81 @@ function processGPSMessage(hexData, socket) {
         console.log(`Respuesta enviada: ${response.toString('hex')}`);
     }
 }
+
+function parseAdditionalInfo(hexData) {
+    let additionalInfo = {};
+    let index = 0;
+
+    while (index < hexData.length) {
+        let id = hexData.substring(index, index + 2);  // ID (1 byte)
+        let length = parseInt(hexData.substring(index + 2, index + 4), 16);  // Longitud (1 byte)
+        let value = hexData.substring(index + 4, index + 4 + (length * 2));  // Valor (N bytes)
+        index += 4 + (length * 2); // Mover índice al siguiente campo
+
+        //Interpretar cada ID según el protocolo JT705A
+        switch (id) {
+            case "10":
+                additionalInfo["wake_up_source"] = parseWakeUpSource(value);
+                break;
+            case "02":
+                additionalInfo["altitude"] = parseInt(value, 16) + " meters";
+                break;
+            case "0A":
+                additionalInfo["mcc_mnc"] = parseMCCMNC(value);
+                break;
+            case "0C":
+                additionalInfo["gyro_data"] = value;
+                break;
+            case "F4":
+                additionalInfo["network_standard"] = parseNetworkStandard(value);
+                break;
+            case "FC":
+                additionalInfo["fence_alarm_id"] = value;
+                break;
+            default:
+                additionalInfo[`unknown_${id}`] = value;
+                break;
+        }
+    }
+
+    return additionalInfo;
+}
+
+// Función para interpretar Wake-Up Source**
+function parseWakeUpSource(value) {
+    const sources = {
+        "00": "Device restart",
+        "01": "RTC timing wake-up",
+        "02": "Vibration or motion wake-up",
+        "03": "Back cover opened wake-up",
+        "05": "Charging wake-up",
+        "06": "Bluetooth commands wake-up",
+        "07": "Unlock button open/close",
+        "08": "SMS or Calling (Non-VIP)",
+        "0A": "SMS or Calling (VIP)",
+        "0B": "Swipe RFID card wake-up"
+    };
+    return sources[value] || "Unknown";
+}
+
+// Función para interpretar MCC/MNC**
+function parseMCCMNC(value) {
+    let mcc = value.substring(0, 4); // MCC
+    let mnc = value.substring(4); // MNC
+    return `MCC: ${parseInt(mcc, 16)}, MNC: ${parseInt(mnc, 16)}`;
+}
+
+// Función para interpretar Network Standard**
+function parseNetworkStandard(value) {
+    const networks = {
+        "00": "Unknown",
+        "02": "2G",
+        "03": "3G",
+        "04": "4G"
+    };
+    return networks[value] || "Unknown";
+}
+
 
 
 
