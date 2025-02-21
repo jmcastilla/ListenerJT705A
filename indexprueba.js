@@ -1,6 +1,6 @@
 const net = require('net');
 
-processGPSMessage("7E55019C3B8580120308366D21022503423000000000000000000600001A0000000003630033A702753B0308000000100102020200000A0402DC0065F401040C0600210057FAB10C7E");
+processGPSMessage("7E55019C3B858012030836F421022517252300000000000000000600001B00000000035B0802F16461B70300000000100102020200000A0402DC0065F401040C0600370057E");
 
 function processGPSMessage(hexData) {
     hexData = restoreEscapeCharacters(hexData);
@@ -10,7 +10,30 @@ function processGPSMessage(hexData) {
     let messageID = hexData.substring(2, 6);
     let deviceID = hexData.substring(10, 22);
     let msgSerialNumber = parseInt(hexData.substring(22, 24), 16);
+    let date = formatDate(hexData.substring(24, 30));
+    let time = formatTime(hexData.substring(30, 36));
+    let latitude = parseLatitude(hexData.substring(36, 44));
+    let longitude = parseLongitude(hexData.substring(44, 53));
+    let speed = parseInt(hexData.substring(54, 56), 16) * 1.85;
+    let direction = parseInt(hexData.substring(56, 58), 16) * 2;
+    let batteryLevel = parseInt(hexData.substring(70, 72), 16);
 
+    let receivedXOR = hexData.slice(-4, -2); // Último byte antes de '7E' final
+    console.log(hexData.slice(2, -4))
+    let calculatedXOR = calculateXOR(hexData.slice(2, -4));
+
+    if (receivedXOR !== calculatedXOR) {
+        console.error(`Checksum incorrecto. Recibido: ${receivedXOR}, Calculado: ${calculatedXOR}`);
+
+    }
+
+    console.log(`Dispositivo: ${deviceID}`);
+    console.log(`Fecha UTC: ${date}`);
+    console.log(`Hora UTC: ${time}`);
+    console.log(`Latitud: ${latitude}, Longitud: ${longitude}`);
+    console.log(`Velocidad: ${speed} km/h`);
+    console.log(`Dirección: ${direction}°`);
+    console.log(`Batería: ${batteryLevel}%`);
     // Si el mensaje requiere respuesta, enviar confirmación
     if (messageID === '5501' || messageID === '5502') {
         let response = buildResponse(deviceID, msgSerialNumber, messageID);
@@ -19,6 +42,27 @@ function processGPSMessage(hexData) {
     }
 }
 
+function parseLatitude(hex) {
+    let grados = parseInt(hex.substring(0, 2), 10);
+    let minutos = parseInt(hex.substring(2), 10) / 10000 / 60;
+    return (grados + minutos).toFixed(8);
+}
+
+// Convierte longitud de formato BCD a decimal
+function parseLongitude(hex) {
+    let grados = parseInt(hex.substring(0, 3), 10);
+    let minutos = parseInt(hex.substring(3), 10) / 10000 / 60;
+    return (grados + minutos).toFixed(8);
+}
+
+function formatDate(hex) {
+    return `20${hex.substring(4, 6)}-${hex.substring(2, 4)}-${hex.substring(0, 2)}`;
+}
+
+// Convierte hora BCD (HHMMSS) a formato legible
+function formatTime(hex) {
+    return `${hex.substring(0, 2)}:${hex.substring(2, 4)}:${hex.substring(4, 6)}`;
+}
 
 
 

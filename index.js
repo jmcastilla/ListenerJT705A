@@ -20,19 +20,19 @@ const server = net.createServer(socket => {
                 let hexData = buffer.substring(start, end + 2); // Extraer trama completa
                 buffer = buffer.substring(end + 2); // Eliminar del buffer la trama procesada
                 console.log(`Datos recibidos: ${hexData}`);
-                if (hexData.length < 30) {
+                if (hexData.length < 70) {
                     console.error("Trama incompleta, descartada:", hexData);
                     break;
                 }
 
                 //**Validar Checksum XOR**
-                let receivedXOR = hexData.slice(-4, -2); // Último byte antes de '7E' final
+                /*let receivedXOR = hexData.slice(-4, -2); // Último byte antes de '7E' final
                 let calculatedXOR = calculateXOR(hexData.slice(2, -4));
 
                 if (receivedXOR !== calculatedXOR) {
                     console.error(`Checksum incorrecto. Recibido: ${receivedXOR}, Calculado: ${calculatedXOR}`);
                     break;
-                }
+                }*/
                 processGPSMessage(hexData, socket); // Procesar mensaje válido
             } else {
                 break; // Si no hay una trama completa, esperar más datos
