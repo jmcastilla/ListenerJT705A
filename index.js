@@ -140,7 +140,7 @@ function buildResponse(deviceID, msgSerialNumber, messageID) {
     let messageLength = '0005';      // Longitud fija de 5 bytes
 
     // Construcción del mensaje SIN `0x7E` al inicio y fin
-    let responseBody = `${messageIDResponse}${messageLength}${deviceID}${msgSerialNumber}${messageID}`;
+    let responseBody = `${messageIDResponse}${messageLength}${deviceID}${msgSerialNumber}${messageID}00`;
 
     // 📌 Calcular el XOR antes del escape
     let xor = calculateXOR(responseBody);
