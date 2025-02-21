@@ -57,12 +57,12 @@ function processGPSMessage(hexData, socket) {
     console.log(`Dispositivo: ${deviceID}`);
     console.log(`Fecha UTC: ${date}`);
     console.log(`Hora UTC: ${time}`);
-    console.log(`Latitud: ${latitude}, Longitud: ${longitude}`);
+    /*console.log(`Latitud: ${latitude}, Longitud: ${longitude}`);
     console.log(`Velocidad: ${speed} km/h`);
     console.log(`Dirección: ${direction}°`);
     console.log(`Batería: ${batteryLevel}%`);
     console.log(`Estado del Dispositivo:`, deviceStatus);
-    console.log(`Alarmas Activas:`, alarmStatus);
+    console.log(`Alarmas Activas:`, alarmStatus);*/
 
     // Si el mensaje requiere respuesta, enviar confirmación
     if (messageID === '5501' || messageID === '5502') {
