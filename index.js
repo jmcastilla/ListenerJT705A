@@ -26,13 +26,13 @@ const server = net.createServer(socket => {
                 }
 
                 //**Validar Checksum XOR**
-                /*let receivedXOR = hexData.slice(-4, -2); // Último byte antes de '7E' final
+                let receivedXOR = hexData.slice(-4, -2); // Último byte antes de '7E' final
                 let calculatedXOR = calculateXOR(hexData.slice(2, -4));
 
                 if (receivedXOR !== calculatedXOR) {
                     console.error(`Checksum incorrecto. Recibido: ${receivedXOR}, Calculado: ${calculatedXOR}`);
                     break;
-                }*/
+                }
                 processGPSMessage(hexData, socket); // Procesar mensaje válido
             } else {
                 break; // Si no hay una trama completa, esperar más datos
