@@ -164,7 +164,7 @@ function buildResponse(deviceID, msgSerialNumber, messageID) {
         .toUpperCase();
 }*/
 
-/*function calculateXOR(hexString) {
+function calculateXOR(hexString) {
     let bytes = Buffer.from(hexString, 'hex');
     let xor = 0;
 
@@ -173,9 +173,9 @@ function buildResponse(deviceID, msgSerialNumber, messageID) {
     }
 
     return xor.toString(16).padStart(2, '0').toUpperCase();
-}*/
+}
 
-function calculateXOR(hexString) {
+/*function calculateXOR(hexString) {
     let lista = [];
 
     // Dividir la cadena en pares de caracteres HEX
@@ -190,7 +190,7 @@ function calculateXOR(hexString) {
     }
 
     return valorInicial.toUpperCase().padStart(2, '0'); // Retorna siempre 2 caracteres en mayúscula
-}
+}*/
 
 function xorHex(a, b) {
     let aByte = parseInt(a, 16);
