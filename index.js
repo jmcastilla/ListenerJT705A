@@ -4,53 +4,75 @@ const PORT = 10000;
 const HOST = '104.236.112.160';
 
 const server = net.createServer(socket => {
-    console.log(`Cliente conectado desde: ${socket.remoteAddress}`);
+    console.log(`📡 Cliente conectado desde: ${socket.remoteAddress}`);
+
+    let buffer = ""; // Buffer para almacenar datos incompletos
 
     socket.on('data', data => {
-        let hexData = data.toString('hex');
+        buffer += data.toString('hex').toUpperCase(); // Acumular datos en buffer
 
-        console.log(`Datos recibidos: ${hexData}`);
+        // Mientras haya mensajes completos (delimitados por `7E`)
+        while (buffer.includes('7E')) {
+            let start = buffer.indexOf('7E');
+            let end = buffer.indexOf('7E', start + 1);
 
-        // Extraer los parámetros del protocolo
-        let messageID = hexData.substring(2, 6);
-        let deviceID = hexData.substring(10, 22);
-        let msgSerialNumber = parseInt(hexData.substring(22, 24), 16);
-        let date = formatDate(hexData.substring(24, 30));
-        let time = formatTime(hexData.substring(30, 36));
-        let latitude = parseLatitude(hexData.substring(36, 44));
-        let longitude = parseLongitude(hexData.substring(44, 53));
-        let speed = parseInt(hexData.substring(54, 56), 16) * 1.85;
-        let direction = parseInt(hexData.substring(56, 58), 16) * 2;
-        let batteryLevel = parseInt(hexData.substring(70, 72), 16);
-        let deviceStatus = parseDeviceStatus(hexData.substring(86, 90));
-        let alarmStatus = parseAlarmStatus(hexData.substring(90, 94));
+            if (end !== -1) {
+                let hexData = buffer.substring(start, end + 2); // Extraer trama completa
+                buffer = buffer.substring(end + 2); // Eliminar del buffer la trama procesada
 
-        // Mostrar resultados en consola
-        console.log(`Dispositivo: ${deviceID}`);
-        console.log(`Fecha UTC: ${date}`);
-        console.log(`Hora UTC: ${time}`);
-        console.log(`Latitud: ${latitude}, Longitud: ${longitude}`);
-        console.log(`Velocidad: ${speed} km/h`);
-        console.log(`Dirección: ${direction}°`);
-        console.log(`Batería: ${batteryLevel}%`);
-        console.log(`Estado del Dispositivo:`, deviceStatus);
-        console.log(`Alarmas Activas:`, alarmStatus);
-
-        // Si el mensaje requiere respuesta, enviar confirmación
-        if (messageID === '5501' || messageID === '5502') {
-            let response = buildResponse(deviceID, msgSerialNumber, messageID);
-            socket.write(response);
-            console.log(`Respuesta enviada: ${response.toString('hex')}`);
+                processGPSMessage(hexData, socket); // Procesar mensaje válido
+            } else {
+                break; // Si no hay una trama completa, esperar más datos
+            }
         }
     });
 
-    socket.on('close', () => console.log('Cliente desconectado.'));
-    socket.on('error', err => console.error(`Error en socket: ${err.message}`));
+    socket.on('close', () => console.log('❌ Cliente desconectado.'));
+    socket.on('error', err => console.error(`🚨 Error en socket: ${err.message}`));
 });
 
 server.listen(PORT, HOST, () => {
     console.log(`Servidor escuchando en ${HOST}:${PORT}`);
 });
+
+function processGPSMessage(hexData, socket) {
+    console.log(`Datos recibidos: ${hexData}`);
+
+    // Extraer los parámetros del protocolo
+    let messageID = hexData.substring(2, 6);
+    let deviceID = hexData.substring(10, 22);
+    let msgSerialNumber = parseInt(hexData.substring(22, 24), 16);
+    let date = formatDate(hexData.substring(24, 30));
+    let time = formatTime(hexData.substring(30, 36));
+    let latitude = parseLatitude(hexData.substring(36, 44));
+    let longitude = parseLongitude(hexData.substring(44, 53));
+    let speed = parseInt(hexData.substring(54, 56), 16) * 1.85;
+    let direction = parseInt(hexData.substring(56, 58), 16) * 2;
+    let batteryLevel = parseInt(hexData.substring(70, 72), 16);
+    let deviceStatus = parseDeviceStatus(hexData.substring(86, 90));
+    let alarmStatus = parseAlarmStatus(hexData.substring(90, 94));
+
+    // Mostrar resultados en consola
+    console.log(`Dispositivo: ${deviceID}`);
+    console.log(`Fecha UTC: ${date}`);
+    console.log(`Hora UTC: ${time}`);
+    console.log(`Latitud: ${latitude}, Longitud: ${longitude}`);
+    console.log(`Velocidad: ${speed} km/h`);
+    console.log(`Dirección: ${direction}°`);
+    console.log(`Batería: ${batteryLevel}%`);
+    console.log(`Estado del Dispositivo:`, deviceStatus);
+    console.log(`Alarmas Activas:`, alarmStatus);
+
+    // Si el mensaje requiere respuesta, enviar confirmación
+    if (messageID === '5501' || messageID === '5502') {
+        let response = buildResponse(deviceID, msgSerialNumber, messageID);
+        socket.write(response);
+        console.log(`Respuesta enviada: ${response.toString('hex')}`);
+    }
+}
+
+
+
 
 // Convierte latitud de formato BCD a decimal
 function parseLatitude(hex) {
