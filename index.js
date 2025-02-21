@@ -137,18 +137,18 @@ function parseAlarmStatus(hexString) {
 
 function buildResponse(deviceID, msgSerialNumber, messageID) {
     let messageIDResponse = '4401';  // Código de respuesta
-    let messageLength = '0005';      // Longitud fija de 5 bytes
+    let messageLength = '0003';      // Longitud fija de 5 bytes
     let exito = '00';
     // Construcción del mensaje SIN `0x7E` al inicio y fin
-    let responseBody = `${messageIDResponse}${messageLength}${deviceID}${msgSerialNumber}${messageID}${exito}`;
+    let responseBody = `${messageIDResponse}${messageLength}${deviceID}01${messageID}${exito}`;
 
-    // 📌 Calcular el XOR antes del escape
+    // Calcular el XOR antes del escape
     let xor = calculateXOR(responseBody);
 
-    // 📌 Aplicar escape a `0x7E` y `0x7D`
+    // Aplicar escape a `0x7E` y `0x7D`
     let escapedBody = applyEscapeCharacters(`${responseBody}${xor}`);
 
-    // 📌 Mensaje final con `0x7E` delimitador
+    // Mensaje final con `0x7E` delimitador
     let response = `7E${escapedBody}7E`;
     console.log(response);
     return Buffer.from(response, 'hex');
