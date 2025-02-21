@@ -1,7 +1,7 @@
 const net = require('net');
 
-const PORT = 9010;
-const HOST = '157.230.211.213';
+const PORT = 10000;
+const HOST = '104.236.112.160';
 
 const server = net.createServer(socket => {
     console.log(`Cliente conectado desde: ${socket.remoteAddress}`);
