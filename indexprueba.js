@@ -1,6 +1,6 @@
 const net = require('net');
 
-processGPSMessage("7E55019C3B858012030836F421022517252300000000000000000600001B00000000035B0802F16461B70300000000100102020200000A0402DC0065F401040C0600370057E");
+processGPSMessage("7E55018C378500110002004108052103103722348643113550130700001F080000000A530000000000000308000000100101020200170A030000000C06FFF1FFA8FF7D021A7E");
 
 function processGPSMessage(hexData) {
     hexData = restoreEscapeCharacters(hexData);
@@ -20,7 +20,12 @@ function processGPSMessage(hexData) {
 
     let receivedXOR = hexData.slice(-4, -2); // Último byte antes de '7E' final
     console.log(hexData.slice(2, -4))
-    let calculatedXOR = calculateXOR(hexData.slice(2, -4));
+    let xorData = hexData.substring(2, hexData.length - 4); // Default
+
+    if (messageID === "5501") {
+        xorData = hexData.substring(2, hexData.length - 6);
+    }
+    let calculatedXOR = calculateXOR(xorData);
 
     if (receivedXOR !== calculatedXOR) {
         console.error(`Checksum incorrecto. Recibido: ${receivedXOR}, Calculado: ${calculatedXOR}`);
