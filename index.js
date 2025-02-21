@@ -164,7 +164,7 @@ function buildResponse(deviceID, msgSerialNumber, messageID) {
         .toUpperCase();
 }*/
 
-function calculateXOR(hexString) {
+/*function calculateXOR(hexString) {
     let bytes = Buffer.from(hexString, 'hex');
     let xor = 0;
 
@@ -173,6 +173,30 @@ function calculateXOR(hexString) {
     }
 
     return xor.toString(16).padStart(2, '0').toUpperCase();
+}*/
+
+function calculateXOR(hexString) {
+    let lista = [];
+
+    // Dividir la cadena en pares de caracteres HEX
+    for (let i = 0; i < hexString.length; i += 2) {
+        lista.push(hexString.substring(i, i + 2));
+    }
+
+    // Aplicar XOR entre todos los valores
+    let valorInicial = lista[0];
+    for (let i = 1; i < lista.length; i++) {
+        valorInicial = xorHex(valorInicial, lista[i]);
+    }
+
+    return valorInicial.toUpperCase().padStart(2, '0'); // Retorna siempre 2 caracteres en mayúscula
+}
+
+function xorHex(a, b) {
+    let aByte = parseInt(a, 16);
+    let bByte = parseInt(b, 16);
+    let result = aByte ^ bByte;
+    return result.toString(16).padStart(2, '0').toUpperCase();
 }
 
 function applyEscapeCharacters(hexString) {
