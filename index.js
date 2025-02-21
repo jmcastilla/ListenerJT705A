@@ -112,7 +112,9 @@ function parseAlarmStatus(hexString) {
 }*/
 
 function buildResponse(deviceID, msgSerialNumber, messageID) {
-    let responseBody = `4401${deviceID}${msgSerialNumber.toString(16).padStart(4, '0')}${messageID}`;
+    let messageLength = '0005'; // Longitud del mensaje en 2 bytes (HEX)
+
+    let responseBody = `4401${messageLength}${deviceID}${msgSerialNumber}${messageID}`;
     let xor = calculateXOR(responseBody);
     let response = `7E${responseBody}${xor}7E`;
 
@@ -130,12 +132,12 @@ function buildResponse(deviceID, msgSerialNumber, messageID) {
 }*/
 
 function calculateXOR(hexString) {
-    let bytes = Buffer.from(hexString, 'hex'); // Convierte el HEX a un buffer
+    let bytes = Buffer.from(hexString, 'hex');
     let xor = 0;
 
     for (let i = 0; i < bytes.length; i++) {
-        xor ^= bytes[i]; // Aplica XOR a cada byte
+        xor ^= bytes[i]; // Aplicar XOR a cada byte
     }
 
-    return xor.toString(16).padStart(2, '0').toUpperCase(); // Devuelve en HEX
+    return xor.toString(16).padStart(2, '0').toUpperCase(); // Devolver en HEX
 }
