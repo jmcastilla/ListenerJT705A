@@ -105,18 +105,37 @@ function parseAlarmStatus(hexString) {
 }
 
 // Construye la respuesta de confirmación `[4401]`
-function buildResponse(deviceID, msgSerialNumber, messageID) {
+/*function buildResponse(deviceID, msgSerialNumber, messageID) {
     let response = `7E44010003${deviceID}01${messageID}00`;
     let xor = calculateXOR(response);
     return Buffer.from(response + xor + '7E', 'hex');
+}*/
+
+function buildResponse(deviceID, msgSerialNumber, messageID) {
+    let responseBody = `4401${deviceID}${msgSerialNumber.toString(16).padStart(4, '0')}${messageID}`;
+    let xor = calculateXOR(responseBody);
+    let response = `7E${responseBody}${xor}7E`;
+
+    return Buffer.from(response, 'hex');
 }
 
 // Calcula el XOR del mensaje para la verificación
-function calculateXOR(hexString) {
+/*function calculateXOR(hexString) {
     return hexString.match(/.{1,2}/g)
         .map(byte => parseInt(byte, 16))
         .reduce((acc, val) => acc ^ val, 0)
         .toString(16)
         .padStart(2, '0')
         .toUpperCase();
+}*/
+
+function calculateXOR(hexString) {
+    let bytes = Buffer.from(hexString, 'hex'); // Convierte el HEX a un buffer
+    let xor = 0;
+
+    for (let i = 0; i < bytes.length; i++) {
+        xor ^= bytes[i]; // Aplica XOR a cada byte
+    }
+
+    return xor.toString(16).padStart(2, '0').toUpperCase(); // Devuelve en HEX
 }
